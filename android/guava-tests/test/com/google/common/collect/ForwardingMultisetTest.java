@@ -16,6 +16,8 @@
 
 package com.google.common.collect;
 
+import static java.util.Arrays.asList;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Multiset.Entry;
 import com.google.common.collect.testing.SetTestSuiteBuilder;
@@ -26,14 +28,14 @@ import com.google.common.collect.testing.google.MultisetTestSuiteBuilder;
 import com.google.common.collect.testing.google.TestStringMultisetGenerator;
 import com.google.common.testing.EqualsTester;
 import com.google.common.testing.ForwardingWrapperTester;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.NullUnmarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tests for {@link ForwardingMultiset}.
@@ -41,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @author Hayward Chan
  * @author Louis Wasserman
  */
+@NullUnmarked
 public class ForwardingMultisetTest extends TestCase {
 
   static final class StandardImplForwardingMultiset<T> extends ForwardingMultiset<T> {
@@ -156,6 +159,7 @@ public class ForwardingMultisetTest extends TestCase {
     }
   }
 
+  @AndroidIncompatible // test-suite builders
   public static Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -167,7 +171,7 @@ public class ForwardingMultisetTest extends TestCase {
                   @Override
                   protected Multiset<String> create(String[] elements) {
                     return new StandardImplForwardingMultiset<>(
-                        LinkedHashMultiset.create(Arrays.asList(elements)));
+                        LinkedHashMultiset.create(asList(elements)));
                   }
                 })
             .named("ForwardingMultiset[LinkedHashMultiset] with standard " + "implementations")
@@ -198,8 +202,7 @@ public class ForwardingMultisetTest extends TestCase {
                    */
                   @Override
                   protected Set<String> create(String[] elements) {
-                    final Multiset<String> inner =
-                        LinkedHashMultiset.create(Arrays.asList(elements));
+                    final Multiset<String> inner = LinkedHashMultiset.create(asList(elements));
                     return new ForwardingMultiset<String>() {
                       @Override
                       protected Multiset<String> delegate() {

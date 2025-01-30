@@ -46,13 +46,14 @@ import java.util.function.Predicate;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tests {@link MapTestSuiteBuilder} by using it against maps that have various negative behaviors.
  *
  * @author George van den Driessche
  */
+@AndroidIncompatible // test-suite builders
 public final class MapTestSuiteBuilderTests extends TestCase {
   private MapTestSuiteBuilderTests() {}
 

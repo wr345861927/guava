@@ -21,6 +21,8 @@ import static com.google.common.collect.CompactHashing.UNSET;
 import static com.google.common.collect.Hashing.smearedHash;
 import static com.google.common.collect.NullnessCasts.uncheckedCastNullableTToT;
 import static com.google.common.collect.NullnessCasts.unsafeNull;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.GwtIncompatible;
@@ -48,8 +50,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * CompactHashMap is an implementation of a Map. All optional operations (put and remove) are
@@ -78,7 +79,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @author Jon Noack
  */
 @GwtIncompatible // not worth using in GWT for now
-@ElementTypesAreNonnullByDefault
 class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     extends AbstractMap<K, V> implements Serializable {
   /*
@@ -184,7 +184,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
    *   <li>null, if no entries have yet been added to the map
    * </ul>
    */
-  @CheckForNull private transient Object table;
+  private transient @Nullable Object table;
 
   /**
    * Contains the logical entries, in the range of [0, size()). The high bits of each int are the
@@ -201,19 +201,19 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
    *
    * <p>The pointers in [size(), entries.length) are all "null" (UNSET).
    */
-  @VisibleForTesting @CheckForNull transient int[] entries;
+  @VisibleForTesting transient int @Nullable [] entries;
 
   /**
    * The keys of the entries in the map, in the range of [0, size()). The keys in [size(),
    * keys.length) are all {@code null}.
    */
-  @VisibleForTesting @CheckForNull transient @Nullable Object[] keys;
+  @VisibleForTesting transient @Nullable Object @Nullable [] keys;
 
   /**
    * The values of the entries in the map, in the range of [0, size()). The values in [size(),
    * values.length) are all {@code null}.
    */
-  @VisibleForTesting @CheckForNull transient @Nullable Object[] values;
+  @VisibleForTesting transient @Nullable Object @Nullable [] values;
 
   /**
    * Keeps track of metadata like the number of hash table bits and modifications of this data
@@ -255,7 +255,6 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
   }
 
   /** Returns whether arrays need to be allocated. */
-  @VisibleForTesting
   boolean needsAllocArrays() {
     return table == null;
   }
@@ -279,8 +278,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
 
   @SuppressWarnings("unchecked")
   @VisibleForTesting
-  @CheckForNull
-  Map<K, V> delegateOrNull() {
+  @Nullable Map<K, V> delegateOrNull() {
     if (table instanceof Map) {
       return (Map<K, V>) table;
     }
@@ -291,7 +289,6 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     return new LinkedHashMap<>(tableSize, 1.0f);
   }
 
-  @VisibleForTesting
   @CanIgnoreReturnValue
   Map<K, V> convertToHashFloodingResistantImplementation() {
     Map<K, V> newDelegate = createHashFloodingResistantDelegate(hashTableMask() + 1);
@@ -332,8 +329,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
 
   @CanIgnoreReturnValue
   @Override
-  @CheckForNull
-  public V put(@ParametricNullness K key, @ParametricNullness V value) {
+  public @Nullable V put(@ParametricNullness K key, @ParametricNullness V value) {
     if (needsAllocArrays()) {
       allocArrays();
     }
@@ -412,8 +408,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     int entriesSize = requireEntries().length;
     if (newSize > entriesSize) {
       // 1.5x but round up to nearest odd (this is optimal for memory consumption on Android)
-      int newCapacity =
-          Math.min(CompactHashing.MAX_SIZE, (entriesSize + Math.max(1, entriesSize >>> 1)) | 1);
+      int newCapacity = min(CompactHashing.MAX_SIZE, (entriesSize + max(1, entriesSize >>> 1)) | 1);
       if (newCapacity != entriesSize) {
         resizeEntries(newCapacity);
       }
@@ -477,7 +472,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     return newMask;
   }
 
-  private int indexOf(@CheckForNull Object key) {
+  private int indexOf(@Nullable Object key) {
     if (needsAllocArrays()) {
       return -1;
     }
@@ -501,14 +496,13 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
   }
 
   @Override
-  public boolean containsKey(@CheckForNull Object key) {
+  public boolean containsKey(@Nullable Object key) {
     Map<K, V> delegate = delegateOrNull();
     return (delegate != null) ? delegate.containsKey(key) : indexOf(key) != -1;
   }
 
   @Override
-  @CheckForNull
-  public V get(@CheckForNull Object key) {
+  public @Nullable V get(@Nullable Object key) {
     Map<K, V> delegate = delegateOrNull();
     if (delegate != null) {
       return delegate.get(key);
@@ -524,8 +518,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
   @CanIgnoreReturnValue
   @SuppressWarnings("unchecked") // known to be a V
   @Override
-  @CheckForNull
-  public V remove(@CheckForNull Object key) {
+  public @Nullable V remove(@Nullable Object key) {
     Map<K, V> delegate = delegateOrNull();
     if (delegate != null) {
       return delegate.remove(key);
@@ -534,7 +527,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     return (oldValue == NOT_FOUND) ? null : (V) oldValue;
   }
 
-  private @Nullable Object removeHelper(@CheckForNull Object key) {
+  private @Nullable Object removeHelper(@Nullable Object key) {
     if (needsAllocArrays()) {
       return NOT_FOUND;
     }
@@ -672,7 +665,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     }
   }
 
-  @LazyInit @CheckForNull private transient Set<K> keySetView;
+  @LazyInit private transient @Nullable Set<K> keySetView;
 
   @Override
   public Set<K> keySet() {
@@ -691,12 +684,12 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     }
 
     @Override
-    public boolean contains(@CheckForNull Object o) {
+    public boolean contains(@Nullable Object o) {
       return CompactHashMap.this.containsKey(o);
     }
 
     @Override
-    public boolean remove(@CheckForNull Object o) {
+    public boolean remove(@Nullable Object o) {
       Map<K, V> delegate = delegateOrNull();
       return (delegate != null)
           ? delegate.keySet().remove(o)
@@ -728,7 +721,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     };
   }
 
-  @LazyInit @CheckForNull private transient Set<Entry<K, V>> entrySetView;
+  @LazyInit private transient @Nullable Set<Entry<K, V>> entrySetView;
 
   @Override
   public Set<Entry<K, V>> entrySet() {
@@ -758,7 +751,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     }
 
     @Override
-    public boolean contains(@CheckForNull Object o) {
+    public boolean contains(@Nullable Object o) {
       Map<K, V> delegate = delegateOrNull();
       if (delegate != null) {
         return delegate.entrySet().contains(o);
@@ -771,7 +764,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     }
 
     @Override
-    public boolean remove(@CheckForNull Object o) {
+    public boolean remove(@Nullable Object o) {
       Map<K, V> delegate = delegateOrNull();
       if (delegate != null) {
         return delegate.entrySet().remove(o);
@@ -895,7 +888,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
   }
 
   @Override
-  public boolean containsValue(@CheckForNull Object value) {
+  public boolean containsValue(@Nullable Object value) {
     Map<K, V> delegate = delegateOrNull();
     if (delegate != null) {
       return delegate.containsValue(value);
@@ -908,7 +901,7 @@ class CompactHashMap<K extends @Nullable Object, V extends @Nullable Object>
     return false;
   }
 
-  @LazyInit @CheckForNull private transient Collection<V> valuesView;
+  @LazyInit private transient @Nullable Collection<V> valuesView;
 
   @Override
   public Collection<V> values() {

@@ -43,8 +43,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides utility methods for working with byte arrays and I/O streams.
@@ -55,7 +54,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @J2ktIncompatible
 @GwtIncompatible
-@ElementTypesAreNonnullByDefault
 public final class ByteStreams {
 
   private static final int BUFFER_SIZE = 8192;
@@ -233,6 +231,8 @@ public final class ByteStreams {
   /**
    * Reads all bytes from an input stream into a byte array. Does not close the stream.
    *
+   * <p><b>Java 9+ users:</b> use {@code in#readAllBytes()} instead.
+   *
    * @param in the input stream to read from
    * @return a byte array containing all the bytes from the stream
    * @throws IOException if an I/O error occurs
@@ -336,7 +336,7 @@ public final class ByteStreams {
     }
 
     @Override
-    public void readFully(byte b[]) {
+    public void readFully(byte[] b) {
       try {
         input.readFully(b);
       } catch (IOException e) {
@@ -345,7 +345,7 @@ public final class ByteStreams {
     }
 
     @Override
-    public void readFully(byte b[], int off, int len) {
+    public void readFully(byte[] b, int off, int len) {
       try {
         input.readFully(b, off, len);
       } catch (IOException e) {
@@ -455,8 +455,7 @@ public final class ByteStreams {
     }
 
     @Override
-    @CheckForNull
-    public String readLine() {
+    public @Nullable String readLine() {
       try {
         return input.readLine();
       } catch (IOException e) {
@@ -712,7 +711,7 @@ public final class ByteStreams {
 
     @Override
     public int available() throws IOException {
-      return (int) Math.min(in.available(), left);
+      return (int) min(in.available(), left);
     }
 
     // it's okay to mark even if mark isn't supported, as reset won't work
@@ -741,7 +740,7 @@ public final class ByteStreams {
         return -1;
       }
 
-      len = (int) Math.min(len, left);
+      len = (int) min(len, left);
       int result = in.read(b, off, len);
       if (result != -1) {
         left -= result;
@@ -764,7 +763,7 @@ public final class ByteStreams {
 
     @Override
     public long skip(long n) throws IOException {
-      n = Math.min(n, left);
+      n = min(n, left);
       long skipped = in.skip(n);
       left -= skipped;
       return skipped;
@@ -838,7 +837,7 @@ public final class ByteStreams {
       if (skipped == 0) {
         // Do a buffered read since skipSafely could return 0 repeatedly, for example if
         // in.available() always returns 0 (the default).
-        int skip = (int) Math.min(remaining, BUFFER_SIZE);
+        int skip = (int) min(remaining, BUFFER_SIZE);
         if (buf == null) {
           // Allocate a buffer bounded by the maximum size that can be requested, for
           // example an array of BUFFER_SIZE is unnecessary when the value of remaining
@@ -866,7 +865,7 @@ public final class ByteStreams {
    */
   private static long skipSafely(InputStream in, long n) throws IOException {
     int available = in.available();
-    return available == 0 ? 0 : in.skip(Math.min(available, n));
+    return available == 0 ? 0 : in.skip(min(available, n));
   }
 
   /**
