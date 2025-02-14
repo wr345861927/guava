@@ -17,11 +17,12 @@
 package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import java.io.Serializable;
 
 /** An ordering that uses the natural order of the string representation of the values. */
 @GwtCompatible(serializable = true)
-@ElementTypesAreNonnullByDefault
 final class UsingToStringOrdering extends Ordering<Object> implements Serializable {
   static final UsingToStringOrdering INSTANCE = new UsingToStringOrdering();
 
@@ -42,5 +43,5 @@ final class UsingToStringOrdering extends Ordering<Object> implements Serializab
 
   private UsingToStringOrdering() {}
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

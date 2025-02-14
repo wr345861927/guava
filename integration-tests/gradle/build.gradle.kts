@@ -7,30 +7,25 @@ val guavaVersionJre =
 val expectedReducedRuntimeClasspathAndroidVersion =
   setOf(
     "guava-${guavaVersionJre.replace("jre", "android")}.jar",
-    "failureaccess-1.0.1.jar",
-    "jsr305-3.0.2.jar",
-    "checker-qual-3.37.0.jar",
-    "error_prone_annotations-2.21.1.jar",
+    "failureaccess-1.0.2.jar",
+    "j2objc-annotations-3.0.0.jar",
+    "jspecify-1.0.0.jar",
+    "error_prone_annotations-2.36.0.jar",
     "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
   )
 val expectedReducedRuntimeClasspathJreVersion =
   setOf(
     "guava-$guavaVersionJre.jar",
-    "failureaccess-1.0.1.jar",
-    "jsr305-3.0.2.jar",
-    "checker-qual-3.37.0.jar",
-    "error_prone_annotations-2.21.1.jar",
+    "failureaccess-1.0.2.jar",
+    "j2objc-annotations-3.0.0.jar",
+    "jspecify-1.0.0.jar",
+    "error_prone_annotations-2.36.0.jar",
     "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
   )
-val expectedCompileClasspathAndroidVersion =
-  expectedReducedRuntimeClasspathAndroidVersion + setOf("j2objc-annotations-2.8.jar")
-val expectedCompileClasspathJreVersion =
-  expectedReducedRuntimeClasspathJreVersion + setOf("j2objc-annotations-2.8.jar")
+val expectedCompileClasspathAndroidVersion = expectedReducedRuntimeClasspathAndroidVersion
+val expectedCompileClasspathJreVersion = expectedReducedRuntimeClasspathJreVersion
 
-val extraLegacyDependencies =
-  setOf(
-    "google-collections-1.0.jar"
-  )
+val extraLegacyDependencies = setOf("google-collections-1.0.jar")
 
 buildscript {
   val agpVersion = if (gradle.gradleVersion.startsWith("5.")) "3.6.4" else "7.0.4"

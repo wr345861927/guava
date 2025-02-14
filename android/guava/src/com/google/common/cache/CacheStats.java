@@ -17,12 +17,13 @@ package com.google.common.cache;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.math.LongMath.saturatedAdd;
 import static com.google.common.math.LongMath.saturatedSubtract;
+import static java.lang.Math.max;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import java.util.concurrent.Callable;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Statistics about the performance of a {@link Cache}. Instances of this class are immutable.
@@ -57,7 +58,6 @@ import javax.annotation.CheckForNull;
  * @since 10.0
  */
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 public final class CacheStats {
   private final long hitCount;
   private final long missCount;
@@ -140,7 +140,7 @@ public final class CacheStats {
    * requestCount}, or {@code 0.0} when {@code requestCount == 0}. Note that {@code hitRate +
    * missRate =~ 1.0}. Cache misses include all requests which weren't cache hits, including
    * requests which resulted in either successful or failed loading attempts, and requests which
-   * waited for other threads to finish loading. It is thus the case that {@code missCount &gt;=
+   * waited for other threads to finish loading. It is thus the case that {@code missCount >=
    * loadSuccessCount + loadExceptionCount}. Multiple concurrent misses for the same key will result
    * in a single load operation.
    */
@@ -242,12 +242,12 @@ public final class CacheStats {
    */
   public CacheStats minus(CacheStats other) {
     return new CacheStats(
-        Math.max(0, saturatedSubtract(hitCount, other.hitCount)),
-        Math.max(0, saturatedSubtract(missCount, other.missCount)),
-        Math.max(0, saturatedSubtract(loadSuccessCount, other.loadSuccessCount)),
-        Math.max(0, saturatedSubtract(loadExceptionCount, other.loadExceptionCount)),
-        Math.max(0, saturatedSubtract(totalLoadTime, other.totalLoadTime)),
-        Math.max(0, saturatedSubtract(evictionCount, other.evictionCount)));
+        max(0, saturatedSubtract(hitCount, other.hitCount)),
+        max(0, saturatedSubtract(missCount, other.missCount)),
+        max(0, saturatedSubtract(loadSuccessCount, other.loadSuccessCount)),
+        max(0, saturatedSubtract(loadExceptionCount, other.loadExceptionCount)),
+        max(0, saturatedSubtract(totalLoadTime, other.totalLoadTime)),
+        max(0, saturatedSubtract(evictionCount, other.evictionCount)));
   }
 
   /**
@@ -277,7 +277,7 @@ public final class CacheStats {
   }
 
   @Override
-  public boolean equals(@CheckForNull Object object) {
+  public boolean equals(@Nullable Object object) {
     if (object instanceof CacheStats) {
       CacheStats other = (CacheStats) object;
       return hitCount == other.hitCount

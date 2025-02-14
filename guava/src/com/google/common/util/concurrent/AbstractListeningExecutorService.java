@@ -15,13 +15,12 @@
 package com.google.common.util.concurrent;
 
 import com.google.common.annotations.GwtIncompatible;
-import com.google.common.annotations.J2ktIncompatible;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RunnableFuture;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstract {@link ListeningExecutorService} implementation that creates {@link ListenableFuture}
@@ -36,10 +35,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 @CheckReturnValue
 @GwtIncompatible
-@J2ktIncompatible
-@ElementTypesAreNonnullByDefault
 public abstract class AbstractListeningExecutorService extends AbstractExecutorService
     implements ListeningExecutorService {
+  /** Constructor for use by subclasses. */
+  public AbstractListeningExecutorService() {}
 
   /**
    * @since 19.0 (present with return type {@code ListenableFutureTask} since 14.0)

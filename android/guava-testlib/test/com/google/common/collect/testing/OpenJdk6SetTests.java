@@ -21,9 +21,9 @@ import static com.google.common.collect.testing.testers.CollectionAddTester.getA
 import static com.google.common.collect.testing.testers.CollectionAddTester.getAddNullUnsupportedMethod;
 import static com.google.common.collect.testing.testers.CollectionCreationTester.getCreateWithNullUnsupportedMethod;
 import static com.google.common.collect.testing.testers.SetAddTester.getAddSupportedNullPresentMethod;
+import static java.util.Arrays.asList;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import junit.framework.Test;
@@ -34,6 +34,7 @@ import junit.framework.Test;
  *
  * @author Kevin Bourrillion
  */
+@AndroidIncompatible // test-suite builders
 public class OpenJdk6SetTests extends TestsForSetsInJavaUtil {
   public static Test suite() {
     return new OpenJdk6SetTests().allTests();
@@ -41,7 +42,7 @@ public class OpenJdk6SetTests extends TestsForSetsInJavaUtil {
 
   @Override
   protected Collection<Method> suppressForTreeSetNatural() {
-    return Arrays.asList(
+    return asList(
         getAddNullUnsupportedMethod(),
         getAddAllNullUnsupportedMethod(),
         getCreateWithNullUnsupportedMethod());
@@ -49,6 +50,6 @@ public class OpenJdk6SetTests extends TestsForSetsInJavaUtil {
 
   @Override
   protected Collection<Method> suppressForCheckedSet() {
-    return Arrays.asList(getAddNullSupportedMethod(), getAddSupportedNullPresentMethod());
+    return asList(getAddNullSupportedMethod(), getAddSupportedNullPresentMethod());
   }
 }

@@ -32,7 +32,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Multiset implementation specialized for enum elements, supporting all single-element operations
@@ -46,12 +46,12 @@ import javax.annotation.CheckForNull;
  */
 @GwtCompatible(emulated = true)
 @J2ktIncompatible
-@ElementTypesAreNonnullByDefault
+@SuppressWarnings("EnumOrdinal") // This is one of the low-level utilities where it's suitable.
 public final class EnumMultiset<E extends Enum<E>> extends AbstractMultiset<E>
     implements Serializable {
   /** Creates an empty {@code EnumMultiset}. */
   public static <E extends Enum<E>> EnumMultiset<E> create(Class<E> type) {
-    return new EnumMultiset<E>(type);
+    return new EnumMultiset<>(type);
   }
 
   /**
@@ -96,7 +96,7 @@ public final class EnumMultiset<E extends Enum<E>> extends AbstractMultiset<E>
     this.counts = new int[enumConstants.length];
   }
 
-  private boolean isActuallyE(@CheckForNull Object o) {
+  private boolean isActuallyE(@Nullable Object o) {
     if (o instanceof Enum) {
       Enum<?> e = (Enum<?>) o;
       int index = e.ordinal();
@@ -127,7 +127,7 @@ public final class EnumMultiset<E extends Enum<E>> extends AbstractMultiset<E>
   }
 
   @Override
-  public int count(@CheckForNull Object element) {
+  public int count(@Nullable Object element) {
     // isActuallyE checks for null, but we check explicitly to help nullness checkers.
     if (element == null || !isActuallyE(element)) {
       return 0;
@@ -160,7 +160,7 @@ public final class EnumMultiset<E extends Enum<E>> extends AbstractMultiset<E>
   // Modification Operations
   @CanIgnoreReturnValue
   @Override
-  public int remove(@CheckForNull Object element, int occurrences) {
+  public int remove(@Nullable Object element, int occurrences) {
     // isActuallyE checks for null, but we check explicitly to help nullness checkers.
     if (element == null || !isActuallyE(element)) {
       return 0;
@@ -306,6 +306,5 @@ public final class EnumMultiset<E extends Enum<E>> extends AbstractMultiset<E>
     Serialization.populateMultiset(this, stream);
   }
 
-  @GwtIncompatible // Not needed in emulated source
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

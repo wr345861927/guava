@@ -19,6 +19,8 @@ package com.google.common.collect;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.base.Supplier;
 import com.google.j2objc.annotations.WeakOuter;
 import java.util.Comparator;
@@ -26,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of {@code Table} whose iteration ordering across row keys is sorted by their
@@ -46,7 +48,6 @@ import javax.annotation.CheckForNull;
  * @author Jared Levy
  */
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 class StandardRowSortedTable<R, C, V> extends StandardTable<R, C, V>
     implements RowSortedTable<R, C, V> {
   /*
@@ -104,8 +105,7 @@ class StandardRowSortedTable<R, C, V> extends StandardTable<R, C, V>
     }
 
     @Override
-    @CheckForNull
-    public Comparator<? super R> comparator() {
+    public @Nullable Comparator<? super R> comparator() {
       return sortedBackingMap().comparator();
     }
 
@@ -142,5 +142,5 @@ class StandardRowSortedTable<R, C, V> extends StandardTable<R, C, V>
     }
   }
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

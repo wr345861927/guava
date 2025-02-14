@@ -17,13 +17,14 @@ package com.google.common.base;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import java.util.Collections;
 import java.util.Set;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /** Implementation of an {@link Optional} containing a reference. */
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 final class Present<T> extends Optional<T> {
   private final T reference;
 
@@ -78,7 +79,7 @@ final class Present<T> extends Optional<T> {
   }
 
   @Override
-  public boolean equals(@CheckForNull Object object) {
+  public boolean equals(@Nullable Object object) {
     if (object instanceof Present) {
       Present<?> other = (Present<?>) object;
       return reference.equals(other.reference);
@@ -96,5 +97,5 @@ final class Present<T> extends Optional<T> {
     return "Optional.of(" + reference + ")";
   }
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

@@ -25,6 +25,7 @@ import static java.util.Collections.nCopies;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.base.Predicate;
 import com.google.common.collect.testing.CollectionTestSuiteBuilder;
 import com.google.common.collect.testing.TestStringCollectionGenerator;
@@ -36,10 +37,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tests for {@link Collections2}.
@@ -48,8 +51,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @author Jared Levy
  */
 @GwtCompatible(emulated = true)
+@NullMarked
 public class Collections2Test extends TestCase {
+  @J2ktIncompatible
   @GwtIncompatible // suite
+  @AndroidIncompatible // test-suite builders
   public static Test suite() {
     TestSuite suite = new TestSuite(Collections2Test.class.getSimpleName());
     suite.addTest(testsForFilter());
@@ -63,11 +69,13 @@ public class Collections2Test extends TestCase {
   }
 
   static final Predicate<@Nullable String> NOT_YYY_ZZZ =
-      input -> !"yyy".equals(input) && !"zzz".equals(input);
+      input -> !Objects.equals(input, "yyy") && !Objects.equals(input, "zzz");
 
   static final Predicate<String> LENGTH_1 = input -> input.length() == 1;
 
+  @J2ktIncompatible
   @GwtIncompatible // suite
+  @AndroidIncompatible // test-suite builders
   private static Test testsForFilter() {
     return CollectionTestSuiteBuilder.using(
             new TestStringCollectionGenerator() {
@@ -90,7 +98,9 @@ public class Collections2Test extends TestCase {
         .createTestSuite();
   }
 
+  @J2ktIncompatible
   @GwtIncompatible // suite
+  @AndroidIncompatible // test-suite builders
   private static Test testsForFilterAll() {
     return CollectionTestSuiteBuilder.using(
             new TestStringCollectionGenerator() {
@@ -111,7 +121,9 @@ public class Collections2Test extends TestCase {
         .createTestSuite();
   }
 
+  @J2ktIncompatible
   @GwtIncompatible // suite
+  @AndroidIncompatible // test-suite builders
   private static Test testsForFilterLinkedList() {
     return CollectionTestSuiteBuilder.using(
             new TestStringCollectionGenerator() {
@@ -134,7 +146,9 @@ public class Collections2Test extends TestCase {
         .createTestSuite();
   }
 
+  @J2ktIncompatible
   @GwtIncompatible // suite
+  @AndroidIncompatible // test-suite builders
   private static Test testsForFilterNoNulls() {
     return CollectionTestSuiteBuilder.using(
             new TestStringCollectionGenerator() {
@@ -157,7 +171,9 @@ public class Collections2Test extends TestCase {
         .createTestSuite();
   }
 
+  @J2ktIncompatible
   @GwtIncompatible // suite
+  @AndroidIncompatible // test-suite builders
   private static Test testsForFilterFiltered() {
     return CollectionTestSuiteBuilder.using(
             new TestStringCollectionGenerator() {
@@ -181,7 +197,9 @@ public class Collections2Test extends TestCase {
         .createTestSuite();
   }
 
+  @J2ktIncompatible
   @GwtIncompatible // suite
+  @AndroidIncompatible // test-suite builders
   private static Test testsForTransform() {
     return CollectionTestSuiteBuilder.using(
             new TestStringCollectionGenerator() {
@@ -204,6 +222,7 @@ public class Collections2Test extends TestCase {
         .createTestSuite();
   }
 
+  @J2ktIncompatible
   @GwtIncompatible // NullPointerTester
   public void testNullPointerExceptions() {
     NullPointerTester tester = new NullPointerTester();
@@ -472,7 +491,7 @@ public class Collections2Test extends TestCase {
   }
 
   public void testToStringImplWithNullEntries() throws Exception {
-    List<String> list = Lists.newArrayList();
+    List<@Nullable String> list = Lists.newArrayList();
     list.add("foo");
     list.add(null);
 

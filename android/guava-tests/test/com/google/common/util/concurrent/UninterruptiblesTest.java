@@ -16,6 +16,7 @@
 
 package com.google.common.util.concurrent;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.InterruptionUtil.repeatedlyInterruptTestThread;
 import static com.google.common.util.concurrent.Uninterruptibles.awaitTerminationUninterruptibly;
 import static com.google.common.util.concurrent.Uninterruptibles.awaitUninterruptibly;
@@ -34,6 +35,7 @@ import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.TearDown;
 import com.google.common.testing.TearDownStack;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import java.time.Duration;
 import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -48,12 +50,14 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import junit.framework.TestCase;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * Tests for {@link Uninterruptibles}.
  *
  * @author Anthony Zana
  */
+@NullUnmarked
 public class UninterruptiblesTest extends TestCase {
   private static final String EXPECTED_TAKE = "expectedTake";
 
@@ -468,6 +472,26 @@ public class UninterruptiblesTest extends TestCase {
   }
 
   // executor.awaitTermination Testcases
+  public void testTryAwaitTerminationUninterruptiblyDuration_success() {
+    ExecutorService executor = newFixedThreadPool(1);
+    requestInterruptIn(500);
+    executor.execute(new SleepTask(1000));
+    executor.shutdown();
+    assertTrue(awaitTerminationUninterruptibly(executor, Duration.ofMillis(LONG_DELAY_MS)));
+    assertTrue(executor.isTerminated());
+    assertInterrupted();
+  }
+
+  public void testTryAwaitTerminationUninterruptiblyDuration_failure() {
+    ExecutorService executor = newFixedThreadPool(1);
+    requestInterruptIn(500);
+    executor.execute(new SleepTask(10000));
+    executor.shutdown();
+    assertFalse(awaitTerminationUninterruptibly(executor, Duration.ofSeconds(1)));
+    assertFalse(executor.isTerminated());
+    assertInterrupted();
+  }
+
   public void testTryAwaitTerminationUninterruptiblyLongTimeUnit_success() {
     ExecutorService executor = newFixedThreadPool(1);
     requestInterruptIn(500);
@@ -760,7 +784,7 @@ public class UninterruptiblesTest extends TestCase {
     void joinUnsuccessfully(long timeoutMillis) {
       Uninterruptibles.joinUninterruptibly(thread, timeoutMillis, MILLISECONDS);
       completed.assertCompletionNotExpected(timeoutMillis);
-      assertFalse(Thread.State.TERMINATED.equals(thread.getState()));
+      assertThat(thread.getState()).isNotEqualTo(Thread.State.TERMINATED);
     }
   }
 

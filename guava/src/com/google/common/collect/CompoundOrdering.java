@@ -17,27 +17,28 @@
 package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Comparator;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /** An ordering that tries several comparators in order. */
 @GwtCompatible(serializable = true)
-@ElementTypesAreNonnullByDefault
 final class CompoundOrdering<T extends @Nullable Object> extends Ordering<T>
     implements Serializable {
   final Comparator<? super T>[] comparators;
 
   @SuppressWarnings("unchecked") // Generic array creation
   CompoundOrdering(Comparator<? super T> primary, Comparator<? super T> secondary) {
-    this.comparators = (Comparator<? super T>[]) new Comparator[] {primary, secondary};
+    this.comparators = (Comparator<? super T>[]) new Comparator<?>[] {primary, secondary};
   }
 
   @SuppressWarnings("unchecked") // Generic array creation
   CompoundOrdering(Iterable<? extends Comparator<? super T>> comparators) {
-    this.comparators = Iterables.toArray(comparators, (Comparator<? super T>[]) new Comparator[0]);
+    this.comparators =
+        Iterables.toArray(comparators, (Comparator<? super T>[]) new Comparator<?>[0]);
   }
 
   @Override
@@ -52,7 +53,7 @@ final class CompoundOrdering<T extends @Nullable Object> extends Ordering<T>
   }
 
   @Override
-  public boolean equals(@CheckForNull Object object) {
+  public boolean equals(@Nullable Object object) {
     if (object == this) {
       return true;
     }
@@ -73,5 +74,5 @@ final class CompoundOrdering<T extends @Nullable Object> extends Ordering<T>
     return "Ordering.compound(" + Arrays.toString(comparators) + ")";
   }
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

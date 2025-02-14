@@ -17,6 +17,8 @@
 package com.google.common.collect;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.lang.Math.max;
+import static java.util.Arrays.asList;
 
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.collect.testing.SetTestSuiteBuilder;
@@ -30,6 +32,7 @@ import java.util.Set;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.jspecify.annotations.NullUnmarked;
 
 /**
  * Tests for CompactLinkedHashSet.
@@ -37,7 +40,9 @@ import junit.framework.TestSuite;
  * @author Dimitris Andreou
  */
 @GwtIncompatible // java.util.Arrays#copyOf(Object[], int), java.lang.reflect.Array
+@NullUnmarked
 public class CompactLinkedHashSetTest extends TestCase {
+  @AndroidIncompatible // test-suite builders
   public static Test suite() {
     List<Feature<?>> allFeatures =
         Arrays.<Feature<?>>asList(
@@ -58,7 +63,7 @@ public class CompactLinkedHashSetTest extends TestCase {
                 new TestStringSetGenerator() {
                   @Override
                   protected Set<String> create(String[] elements) {
-                    return CompactLinkedHashSet.create(Arrays.asList(elements));
+                    return CompactLinkedHashSet.create(asList(elements));
                   }
                 })
             .named("CompactLinkedHashSet")
@@ -85,7 +90,7 @@ public class CompactLinkedHashSetTest extends TestCase {
 
       set.add(1);
       assertThat(set.needsAllocArrays()).isFalse();
-      int expectedSize = Math.max(1, i);
+      int expectedSize = max(1, i);
       assertThat(set.elements).hasLength(expectedSize);
     }
   }

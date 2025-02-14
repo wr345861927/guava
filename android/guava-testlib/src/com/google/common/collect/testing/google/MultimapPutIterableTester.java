@@ -16,16 +16,17 @@
 package com.google.common.collect.testing.google;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.testing.Helpers.assertContainsAllOf;
 import static com.google.common.collect.testing.features.CollectionSize.ZERO;
 import static com.google.common.collect.testing.features.MapFeature.ALLOWS_NULL_KEYS;
 import static com.google.common.collect.testing.features.MapFeature.ALLOWS_NULL_VALUES;
 import static com.google.common.collect.testing.features.MapFeature.SUPPORTS_PUT;
+import static com.google.common.collect.testing.google.ReflectionFreeAssertThrows.assertThrows;
+import static java.util.Collections.singletonList;
 
 import com.google.common.annotations.GwtCompatible;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.testing.features.CollectionSize;
 import com.google.common.collect.testing.features.MapFeature;
@@ -40,68 +41,56 @@ import org.junit.Ignore;
  * @author Louis Wasserman
  */
 @GwtCompatible
-@Ignore // Affects only Android test runner, which respects JUnit 4 annotations on JUnit 3 tests.
+@Ignore("test runners must not instantiate and run this directly, only via suites we build")
+@SuppressWarnings({
+  // @Ignore affects the Android test runner, which respects JUnit 4 annotations on JUnit 3 tests.
+  "JUnit4ClassUsedInJUnit3",
+  // We use ::iterator so that we test passing a plain Iterable, not a Collection.
+  "UnnecessaryMethodReference",
+})
 public class MultimapPutIterableTester<K, V> extends AbstractMultimapTester<K, V, Multimap<K, V>> {
   @CollectionSize.Require(absent = ZERO)
   @MapFeature.Require(SUPPORTS_PUT)
   public void testPutAllNonEmptyIterableOnPresentKey() {
-    assertTrue(
-        multimap()
-            .putAll(
-                k0(),
-                new Iterable<V>() {
-                  @Override
-                  public Iterator<V> iterator() {
-                    return Lists.newArrayList(v3(), v4()).iterator();
-                  }
-                }));
+    assertTrue(multimap().putAll(k0(), newArrayList(v3(), v4())::iterator));
     assertGet(k0(), v0(), v3(), v4());
   }
 
   @CollectionSize.Require(absent = ZERO)
   @MapFeature.Require(SUPPORTS_PUT)
   public void testPutAllNonEmptyCollectionOnPresentKey() {
-    assertTrue(multimap().putAll(k0(), Lists.newArrayList(v3(), v4())));
+    assertTrue(multimap().putAll(k0(), newArrayList(v3(), v4())));
     assertGet(k0(), v0(), v3(), v4());
   }
 
   @MapFeature.Require(SUPPORTS_PUT)
   public void testPutAllNonEmptyIterableOnAbsentKey() {
-    assertTrue(
-        multimap()
-            .putAll(
-                k3(),
-                new Iterable<V>() {
-                  @Override
-                  public Iterator<V> iterator() {
-                    return Lists.newArrayList(v3(), v4()).iterator();
-                  }
-                }));
+    assertTrue(multimap().putAll(k3(), newArrayList(v3(), v4())::iterator));
     assertGet(k3(), v3(), v4());
   }
 
   @MapFeature.Require(SUPPORTS_PUT)
   public void testPutAllNonEmptyCollectionOnAbsentKey() {
-    assertTrue(multimap().putAll(k3(), Lists.newArrayList(v3(), v4())));
+    assertTrue(multimap().putAll(k3(), newArrayList(v3(), v4())));
     assertGet(k3(), v3(), v4());
   }
 
   @CollectionSize.Require(absent = ZERO)
   @MapFeature.Require({SUPPORTS_PUT, ALLOWS_NULL_VALUES})
   public void testPutAllNullValueOnPresentKey_supported() {
-    assertTrue(multimap().putAll(k0(), Lists.newArrayList(v3(), null)));
+    assertTrue(multimap().putAll(k0(), newArrayList(v3(), null)));
     assertGet(k0(), v0(), v3(), null);
   }
 
   @MapFeature.Require({SUPPORTS_PUT, ALLOWS_NULL_VALUES})
   public void testPutAllNullValueOnAbsentKey_supported() {
-    assertTrue(multimap().putAll(k3(), Lists.newArrayList(v3(), null)));
+    assertTrue(multimap().putAll(k3(), newArrayList(v3(), null)));
     assertGet(k3(), v3(), null);
   }
 
   @MapFeature.Require(value = SUPPORTS_PUT, absent = ALLOWS_NULL_VALUES)
   public void testPutAllNullValueSingle_unsupported() {
-    multimap().putAll(k1(), Lists.newArrayList((V) null));
+    multimap().putAll(k1(), newArrayList((V) null));
     expectUnchanged();
   }
 
@@ -111,20 +100,17 @@ public class MultimapPutIterableTester<K, V> extends AbstractMultimapTester<K, V
   public void testPutAllNullValueNullLast_unsupported() {
     int size = getNumElements();
 
-    try {
-      multimap().putAll(k3(), Lists.newArrayList(v3(), null));
-      fail();
-    } catch (NullPointerException expected) {
-    }
+    assertThrows(
+        NullPointerException.class, () -> multimap().putAll(k3(), newArrayList(v3(), null)));
 
     Collection<V> values = multimap().get(k3());
     if (values.size() == 0) {
       expectUnchanged();
       // Be extra thorough in case internal state was corrupted by the expected null.
-      assertEquals(Lists.newArrayList(), Lists.newArrayList(values));
+      assertEquals(newArrayList(), newArrayList(values));
       assertEquals(size, multimap().size());
     } else {
-      assertEquals(Lists.newArrayList(v3()), Lists.newArrayList(values));
+      assertEquals(newArrayList(v3()), newArrayList(values));
       assertEquals(size + 1, multimap().size());
     }
   }
@@ -133,11 +119,8 @@ public class MultimapPutIterableTester<K, V> extends AbstractMultimapTester<K, V
   public void testPutAllNullValueNullFirst_unsupported() {
     int size = getNumElements();
 
-    try {
-      multimap().putAll(k3(), Lists.newArrayList(null, v3()));
-      fail();
-    } catch (NullPointerException expected) {
-    }
+    assertThrows(
+        NullPointerException.class, () -> multimap().putAll(k3(), newArrayList(null, v3())));
 
     /*
      * In principle, a Multimap implementation could add e3 first before failing on the null. But
@@ -146,24 +129,19 @@ public class MultimapPutIterableTester<K, V> extends AbstractMultimapTester<K, V
      */
     expectUnchanged();
     // Be extra thorough in case internal state was corrupted by the expected null.
-    assertEquals(Lists.newArrayList(), Lists.newArrayList(multimap().get(k3())));
+    assertEquals(newArrayList(), newArrayList(multimap().get(k3())));
     assertEquals(size, multimap().size());
   }
 
   @MapFeature.Require({SUPPORTS_PUT, ALLOWS_NULL_KEYS})
   public void testPutAllOnPresentNullKey() {
-    assertTrue(multimap().putAll(null, Lists.newArrayList(v3(), v4())));
+    assertTrue(multimap().putAll(null, newArrayList(v3(), v4())));
     assertGet(null, v3(), v4());
   }
 
-  @MapFeature.Require(absent = ALLOWS_NULL_KEYS)
+  @MapFeature.Require(value = SUPPORTS_PUT, absent = ALLOWS_NULL_KEYS)
   public void testPutAllNullForbidden() {
-    try {
-      multimap().putAll(null, Collections.singletonList(v3()));
-      fail("Expected NullPointerException");
-    } catch (NullPointerException expected) {
-      // success
-    }
+    assertThrows(NullPointerException.class, () -> multimap().putAll(null, singletonList(v3())));
   }
 
   @MapFeature.Require(SUPPORTS_PUT)
@@ -174,15 +152,7 @@ public class MultimapPutIterableTester<K, V> extends AbstractMultimapTester<K, V
 
   @MapFeature.Require(SUPPORTS_PUT)
   public void testPutAllEmptyIterableOnAbsentKey() {
-    Iterable<V> iterable =
-        new Iterable<V>() {
-          @Override
-          public Iterator<V> iterator() {
-            return ImmutableSet.<V>of().iterator();
-          }
-        };
-
-    assertFalse(multimap().putAll(k3(), iterable));
+    assertFalse(multimap().putAll(k3(), Collections::emptyIterator));
     expectUnchanged();
   }
 
@@ -214,7 +184,7 @@ public class MultimapPutIterableTester<K, V> extends AbstractMultimapTester<K, V
   public void testPutAllPropagatesToGet() {
     Collection<V> getCollection = multimap().get(k0());
     int getCollectionSize = getCollection.size();
-    assertTrue(multimap().putAll(k0(), Lists.newArrayList(v3(), v4())));
+    assertTrue(multimap().putAll(k0(), newArrayList(v3(), v4())));
     assertEquals(getCollectionSize + 2, getCollection.size());
     assertContainsAllOf(getCollection, v3(), v4());
   }

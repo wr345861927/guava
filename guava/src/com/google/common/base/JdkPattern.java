@@ -21,8 +21,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** A regex pattern implementation which is backed by the {@link Pattern}. */
-@ElementTypesAreNonnullByDefault
-@J2ktIncompatible
 @GwtIncompatible
 final class JdkPattern extends CommonPattern implements Serializable {
   private final Pattern pattern;
@@ -89,5 +87,5 @@ final class JdkPattern extends CommonPattern implements Serializable {
     }
   }
 
-  private static final long serialVersionUID = 0;
+  @J2ktIncompatible private static final long serialVersionUID = 0;
 }

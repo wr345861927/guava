@@ -26,9 +26,11 @@ import junit.framework.TestResult;
 /**
  * @author Max Ross
  */
+@AndroidIncompatible // test-suite builders
 public class FeatureSpecificTestSuiteBuilderTest extends TestCase {
   private static final class MyTestSuiteBuilder
       extends FeatureSpecificTestSuiteBuilder<MyTestSuiteBuilder, String> {
+    @SuppressWarnings("rawtypes") // class literals
     @Override
     protected List<Class<? extends AbstractTester>> getTesters() {
       return Collections.<Class<? extends AbstractTester>>singletonList(MyTester.class);

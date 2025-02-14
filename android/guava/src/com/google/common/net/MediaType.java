@@ -16,18 +16,18 @@ package com.google.common.net;
 
 import static com.google.common.base.CharMatcher.ascii;
 import static com.google.common.base.CharMatcher.javaIsoControl;
-import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.hash;
 
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Joiner.MapJoiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMultiset;
@@ -43,7 +43,7 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents an <a href="http://en.wikipedia.org/wiki/Internet_media_type">Internet Media Type</a>
@@ -72,7 +72,6 @@ import javax.annotation.CheckForNull;
  */
 @GwtCompatible
 @Immutable
-@ElementTypesAreNonnullByDefault
 public final class MediaType {
   private static final String CHARSET_ATTRIBUTE = "charset";
   private static final ImmutableListMultimap<String, String> UTF_8_CONSTANT_PARAMETERS =
@@ -103,7 +102,7 @@ public final class MediaType {
 
   private static final String WILDCARD = "*";
 
-  private static final Map<MediaType, MediaType> KNOWN_TYPES = Maps.newHashMap();
+  private static final Map<MediaType, MediaType> knownTypes = Maps.newHashMap();
 
   private static MediaType createConstant(String type, String subtype) {
     MediaType mediaType =
@@ -118,8 +117,9 @@ public final class MediaType {
     return mediaType;
   }
 
+  @CanIgnoreReturnValue
   private static MediaType addKnownType(MediaType mediaType) {
-    KNOWN_TYPES.put(mediaType, mediaType);
+    knownTypes.put(mediaType, mediaType);
     return mediaType;
   }
 
@@ -154,6 +154,15 @@ public final class MediaType {
   public static final MediaType CSV_UTF_8 = createConstantUtf8(TEXT_TYPE, "csv");
   public static final MediaType HTML_UTF_8 = createConstantUtf8(TEXT_TYPE, "html");
   public static final MediaType I_CALENDAR_UTF_8 = createConstantUtf8(TEXT_TYPE, "calendar");
+
+  /**
+   * As described in <a href="https://www.rfc-editor.org/rfc/rfc7763.html">RFC 7763</a>, this
+   * constant ({@code text/markdown}) is used for Markdown documents.
+   *
+   * @since 33.3.0
+   */
+  public static final MediaType MD_UTF_8 = createConstantUtf8(TEXT_TYPE, "markdown");
+
   public static final MediaType PLAIN_TEXT_UTF_8 = createConstantUtf8(TEXT_TYPE, "plain");
 
   /**
@@ -162,6 +171,7 @@ public final class MediaType {
    * may be necessary in certain situations for compatibility.
    */
   public static final MediaType TEXT_JAVASCRIPT_UTF_8 = createConstantUtf8(TEXT_TYPE, "javascript");
+
   /**
    * <a href="http://www.iana.org/assignments/media-types/text/tab-separated-values">Tab separated
    * values</a>.
@@ -241,6 +251,9 @@ public final class MediaType {
 
   public static final MediaType SVG_UTF_8 = createConstantUtf8(IMAGE_TYPE, "svg+xml");
   public static final MediaType TIFF = createConstant(IMAGE_TYPE, "tiff");
+
+  /** <a href="https://en.wikipedia.org/wiki/AVIF">AVIF image format</a>. */
+  public static final MediaType AVIF = createConstant(IMAGE_TYPE, "avif");
 
   /**
    * <a href="https://en.wikipedia.org/wiki/WebP">WebP image format</a>.
@@ -396,7 +409,9 @@ public final class MediaType {
   public static final MediaType DART_UTF_8 = createConstantUtf8(APPLICATION_TYPE, "dart");
 
   /**
-   * <a href="https://goo.gl/2QoMvg">Apple Passbook</a>.
+   * <a
+   * href="https://developer.apple.com/library/archive/documentation/UserExperience/Conceptual/PassKit_PG/DistributingPasses.html">Apple
+   * Passbook</a>.
    *
    * @since 19.0
    */
@@ -446,6 +461,15 @@ public final class MediaType {
    * @since 14.0
    */
   public static final MediaType APPLICATION_BINARY = createConstant(APPLICATION_TYPE, "binary");
+
+  /**
+   * As described in <a href="https://www.rfc-editor.org/rfc/rfc8949.html">RFC 8949</a>, this
+   * constant ({@code application/cbor}) is used for the Concise Binary Object Representation (CBOR)
+   * data format.
+   *
+   * @since 33.4.0
+   */
+  public static final MediaType CBOR = createConstant(APPLICATION_TYPE, "cbor");
 
   /**
    * Media type for the <a href="https://tools.ietf.org/html/rfc7946">GeoJSON Format</a>, a
@@ -525,29 +549,44 @@ public final class MediaType {
   public static final MediaType MBOX = createConstant(APPLICATION_TYPE, "mbox");
 
   /**
-   * <a href="http://goo.gl/1pGBFm">Apple over-the-air mobile configuration profiles</a>.
+   * <a
+   * href="https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/iPhoneOTAConfiguration/profile-service/profile-service.html">Apple
+   * over-the-air mobile configuration profiles</a>.
    *
    * @since 18.0
    */
   public static final MediaType APPLE_MOBILE_CONFIG =
       createConstant(APPLICATION_TYPE, "x-apple-aspen-config");
 
-  /** <a href="http://goo.gl/XDQ1h2">Microsoft Excel</a> spreadsheets. */
+  /**
+   * <a
+   * href="https://learn.microsoft.com/en-us/archive/blogs/vsofficedeveloper/office-2007-file-format-mime-types-for-http-content-streaming-2">Microsoft
+   * Excel</a> spreadsheets.
+   */
   public static final MediaType MICROSOFT_EXCEL = createConstant(APPLICATION_TYPE, "vnd.ms-excel");
 
   /**
-   * <a href="http://goo.gl/XrTEqG">Microsoft Outlook</a> items.
+   * <a href="https://www.loc.gov/preservation/digital/formats/fdd/fdd000379.shtml">Microsoft
+   * Outlook</a> items.
    *
    * @since 27.1
    */
   public static final MediaType MICROSOFT_OUTLOOK =
       createConstant(APPLICATION_TYPE, "vnd.ms-outlook");
 
-  /** <a href="http://goo.gl/XDQ1h2">Microsoft Powerpoint</a> presentations. */
+  /**
+   * <a
+   * href="https://learn.microsoft.com/en-us/archive/blogs/vsofficedeveloper/office-2007-file-format-mime-types-for-http-content-streaming-2">Microsoft
+   * Powerpoint</a> presentations.
+   */
   public static final MediaType MICROSOFT_POWERPOINT =
       createConstant(APPLICATION_TYPE, "vnd.ms-powerpoint");
 
-  /** <a href="http://goo.gl/XDQ1h2">Microsoft Word</a> documents. */
+  /**
+   * <a
+   * href="https://learn.microsoft.com/en-us/archive/blogs/vsofficedeveloper/office-2007-file-format-mime-types-for-http-content-streaming-2">Microsoft
+   * Word</a> documents.
+   */
   public static final MediaType MICROSOFT_WORD = createConstant(APPLICATION_TYPE, "msword");
 
   /**
@@ -768,11 +807,14 @@ public final class MediaType {
   private final String subtype;
   private final ImmutableListMultimap<String, String> parameters;
 
-  @LazyInit @CheckForNull private String toString;
+  @LazyInit private @Nullable String toString;
 
   @LazyInit private int hashCode;
 
-  @LazyInit @CheckForNull private Optional<Charset> parsedCharset;
+  // We need to differentiate between "not computed" and "computed to be absent."
+  @SuppressWarnings("NullableOptional")
+  @LazyInit
+  private @Nullable Optional<Charset> parsedCharset;
 
   private MediaType(String type, String subtype, ImmutableListMultimap<String, String> parameters) {
     this.type = type;
@@ -871,7 +913,9 @@ public final class MediaType {
       mediaType.parsedCharset = this.parsedCharset;
     }
     // Return one of the constants if the media type is a known type.
-    return MoreObjects.firstNonNull(KNOWN_TYPES.get(mediaType), mediaType);
+    @SuppressWarnings("GetOrDefaultNotNull") // getOrDefault requires API Level 24
+    MediaType result = firstNonNull(knownTypes.get(mediaType), mediaType);
+    return result;
   }
 
   /**
@@ -905,7 +949,7 @@ public final class MediaType {
 
   /** Returns true if either the type or subtype is the wildcard. */
   public boolean hasWildcard() {
-    return WILDCARD.equals(type) || WILDCARD.equals(subtype);
+    return type.equals(WILDCARD) || subtype.equals(WILDCARD);
   }
 
   /**
@@ -963,7 +1007,7 @@ public final class MediaType {
     String normalizedType = normalizeToken(type);
     String normalizedSubtype = normalizeToken(subtype);
     checkArgument(
-        !WILDCARD.equals(normalizedType) || WILDCARD.equals(normalizedSubtype),
+        !normalizedType.equals(WILDCARD) || normalizedSubtype.equals(WILDCARD),
         "A wildcard type cannot be used with a non-wildcard subtype");
     ImmutableListMultimap.Builder<String, String> builder = ImmutableListMultimap.builder();
     for (Entry<String, String> entry : parameters.entries()) {
@@ -972,7 +1016,9 @@ public final class MediaType {
     }
     MediaType mediaType = new MediaType(normalizedType, normalizedSubtype, builder.build());
     // Return one of the constants if the media type is a known type.
-    return MoreObjects.firstNonNull(KNOWN_TYPES.get(mediaType), mediaType);
+    @SuppressWarnings("GetOrDefaultNotNull") // getOrDefault requires API Level 24
+    MediaType result = firstNonNull(knownTypes.get(mediaType), mediaType);
+    return result;
   }
 
   /**
@@ -1038,7 +1084,7 @@ public final class MediaType {
   private static String normalizeParameterValue(String attribute, String value) {
     checkNotNull(value); // for GWT
     checkArgument(ascii().matchesAllOf(value), "parameter values must be ASCII: %s", value);
-    return CHARSET_ATTRIBUTE.equals(attribute) ? Ascii.toLowerCase(value) : value;
+    return attribute.equals(CHARSET_ATTRIBUTE) ? Ascii.toLowerCase(value) : value;
   }
 
   /**
@@ -1060,11 +1106,11 @@ public final class MediaType {
         String attribute = tokenizer.consumeToken(TOKEN_MATCHER);
         consumeSeparator(tokenizer, '=');
         String value;
-        if ('"' == tokenizer.previewChar()) {
+        if (tokenizer.previewChar() == '"') {
           tokenizer.consumeCharacter('"');
           StringBuilder valueBuilder = new StringBuilder();
-          while ('"' != tokenizer.previewChar()) {
-            if ('\\' == tokenizer.previewChar()) {
+          while (tokenizer.previewChar() != '"') {
+            if (tokenizer.previewChar() == '\\') {
               tokenizer.consumeCharacter('\\');
               valueBuilder.append(tokenizer.consumeCharacter(ascii()));
             } else {
@@ -1140,7 +1186,7 @@ public final class MediaType {
   }
 
   @Override
-  public boolean equals(@CheckForNull Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof MediaType) {
@@ -1159,7 +1205,7 @@ public final class MediaType {
     // racy single-check idiom
     int h = hashCode;
     if (h == 0) {
-      h = Objects.hashCode(type, subtype, parametersAsMap());
+      h = hash(type, subtype, parametersAsMap());
       hashCode = h;
     }
     return h;

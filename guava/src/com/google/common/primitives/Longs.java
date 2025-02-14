@@ -20,7 +20,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndexes;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.base.Converter;
+import com.google.errorprone.annotations.InlineMe;
 import java.io.Serializable;
 import java.util.AbstractList;
 import java.util.Arrays;
@@ -31,7 +34,7 @@ import java.util.List;
 import java.util.RandomAccess;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Static utility methods pertaining to {@code long} primitives, that are not already found in
@@ -44,14 +47,13 @@ import javax.annotation.CheckForNull;
  * @since 1.0
  */
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 public final class Longs {
   private Longs() {}
 
   /**
    * The number of bytes required to represent a primitive {@code long} value.
    *
-   * <p><b>Java 8 users:</b> use {@link Long#BYTES} instead.
+   * <p><b>Java 8+ users:</b> use {@link Long#BYTES} instead.
    */
   public static final int BYTES = Long.SIZE / Byte.SIZE;
 
@@ -70,7 +72,7 @@ public final class Longs {
    * might be different from {@code ((Long) value).hashCode()} in GWT because {@link
    * Long#hashCode()} in GWT does not obey the JRE contract.
    *
-   * <p><b>Java 8 users:</b> use {@link Long#hashCode(long)} instead.
+   * <p><b>Java 8+ users:</b> use {@link Long#hashCode(long)} instead.
    *
    * @param value a primitive {@code long} value
    * @return a hash code for the value
@@ -83,7 +85,7 @@ public final class Longs {
    * Compares the two specified {@code long} values. The sign of the value returned is the same as
    * that of {@code ((Long) a).compareTo(b)}.
    *
-   * <p><b>Note for Java 7 and later:</b> this method should be treated as deprecated; use the
+   * <p><b>Note:</b> this method is now unnecessary and should be treated as deprecated; use the
    * equivalent {@link Long#compare} method instead.
    *
    * @param a the first {@code long} to compare
@@ -91,8 +93,9 @@ public final class Longs {
    * @return a negative value if {@code a} is less than {@code b}; a positive value if {@code a} is
    *     greater than {@code b}; or zero if they are equal
    */
+  @InlineMe(replacement = "Long.compare(a, b)")
   public static int compare(long a, long b) {
-    return (a < b) ? -1 : ((a > b) ? 1 : 0);
+    return Long.compare(a, b);
   }
 
   /**
@@ -229,6 +232,9 @@ public final class Longs {
    * unchanged. If {@code value} is less than {@code min}, {@code min} is returned, and if {@code
    * value} is greater than {@code max}, {@code max} is returned.
    *
+   * <p><b>Java 21+ users:</b> Use {@code Math.clamp} instead. Note that that method is capable of
+   * constraining a {@code long} input to an {@code int} range.
+   *
    * @param value the {@code long} value to constrain
    * @param min the lower bound (inclusive) of the range to constrain {@code value} to
    * @param max the upper bound (inclusive) of the range to constrain {@code value} to
@@ -362,8 +368,8 @@ public final class Longs {
    * an exception if parsing fails. Additionally, this method only accepts ASCII digits, and returns
    * {@code null} if non-ASCII digits are present in the string.
    *
-   * <p>Note that strings prefixed with ASCII {@code '+'} are rejected, even under JDK 7, despite
-   * the change to {@link Long#parseLong(String)} for that version.
+   * <p>Note that strings prefixed with ASCII {@code '+'} are rejected, even though {@link
+   * Integer#parseInt(String)} accepts them.
    *
    * @param string the string representation of a long value
    * @return the long value represented by {@code string}, or {@code null} if {@code string} has a
@@ -371,8 +377,7 @@ public final class Longs {
    * @throws NullPointerException if {@code string} is {@code null}
    * @since 14.0
    */
-  @CheckForNull
-  public static Long tryParse(String string) {
+  public static @Nullable Long tryParse(String string) {
     return tryParse(string, 10);
   }
 
@@ -384,8 +389,8 @@ public final class Longs {
    * throwing an exception if parsing fails. Additionally, this method only accepts ASCII digits,
    * and returns {@code null} if non-ASCII digits are present in the string.
    *
-   * <p>Note that strings prefixed with ASCII {@code '+'} are rejected, even under JDK 7, despite
-   * the change to {@link Long#parseLong(String, int)} for that version.
+   * <p>Note that strings prefixed with ASCII {@code '+'} are rejected, even though {@link
+   * Integer#parseInt(String)} accepts them.
    *
    * @param string the string representation of a long value
    * @param radix the radix to use when parsing
@@ -396,8 +401,7 @@ public final class Longs {
    * @throws NullPointerException if {@code string} is {@code null}
    * @since 19.0
    */
-  @CheckForNull
-  public static Long tryParse(String string, int radix) {
+  public static @Nullable Long tryParse(String string, int radix) {
     if (checkNotNull(string).isEmpty()) {
       return null;
     }
@@ -440,7 +444,7 @@ public final class Longs {
   }
 
   private static final class LongConverter extends Converter<String, Long> implements Serializable {
-    static final LongConverter INSTANCE = new LongConverter();
+    static final Converter<String, Long> INSTANCE = new LongConverter();
 
     @Override
     protected Long doForward(String value) {
@@ -461,7 +465,7 @@ public final class Longs {
       return INSTANCE;
     }
 
-    private static final long serialVersionUID = 1;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 1;
   }
 
   /**
@@ -545,7 +549,7 @@ public final class Longs {
     public int compare(long[] left, long[] right) {
       int minLength = Math.min(left.length, right.length);
       for (int i = 0; i < minLength; i++) {
-        int result = Longs.compare(left[i], right[i]);
+        int result = Long.compare(left[i], right[i]);
         if (result != 0) {
           return result;
         }
@@ -754,13 +758,13 @@ public final class Longs {
     }
 
     @Override
-    public boolean contains(@CheckForNull Object target) {
+    public boolean contains(@Nullable Object target) {
       // Overridden to prevent a ton of boxing
       return (target instanceof Long) && Longs.indexOf(array, (Long) target, start, end) != -1;
     }
 
     @Override
-    public int indexOf(@CheckForNull Object target) {
+    public int indexOf(@Nullable Object target) {
       // Overridden to prevent a ton of boxing
       if (target instanceof Long) {
         int i = Longs.indexOf(array, (Long) target, start, end);
@@ -772,7 +776,7 @@ public final class Longs {
     }
 
     @Override
-    public int lastIndexOf(@CheckForNull Object target) {
+    public int lastIndexOf(@Nullable Object target) {
       // Overridden to prevent a ton of boxing
       if (target instanceof Long) {
         int i = Longs.lastIndexOf(array, (Long) target, start, end);
@@ -803,7 +807,7 @@ public final class Longs {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object object) {
+    public boolean equals(@Nullable Object object) {
       if (object == this) {
         return true;
       }
@@ -846,6 +850,6 @@ public final class Longs {
       return Arrays.copyOfRange(array, start, end);
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 }

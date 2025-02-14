@@ -16,15 +16,18 @@
 
 package com.google.common.collect;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.unmodifiableSet;
+
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Basic implementation of the {@link SetMultimap} interface. It's a wrapper around {@link
@@ -34,7 +37,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @author Jared Levy
  */
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 abstract class AbstractSetMultimap<K extends @Nullable Object, V extends @Nullable Object>
     extends AbstractMapBasedMultimap<K, V> implements SetMultimap<K, V> {
   /**
@@ -51,13 +53,13 @@ abstract class AbstractSetMultimap<K extends @Nullable Object, V extends @Nullab
 
   @Override
   Set<V> createUnmodifiableEmptyCollection() {
-    return Collections.emptySet();
+    return emptySet();
   }
 
   @Override
   <E extends @Nullable Object> Collection<E> unmodifiableCollectionSubclass(
       Collection<E> collection) {
-    return Collections.unmodifiableSet((Set<E>) collection);
+    return unmodifiableSet((Set<E>) collection);
   }
 
   @Override
@@ -97,7 +99,7 @@ abstract class AbstractSetMultimap<K extends @Nullable Object, V extends @Nullab
    */
   @CanIgnoreReturnValue
   @Override
-  public Set<V> removeAll(@CheckForNull Object key) {
+  public Set<V> removeAll(@Nullable Object key) {
     return (Set<V>) super.removeAll(key);
   }
 
@@ -147,9 +149,10 @@ abstract class AbstractSetMultimap<K extends @Nullable Object, V extends @Nullab
    * Equality does not depend on the ordering of keys or values.
    */
   @Override
-  public boolean equals(@CheckForNull Object object) {
+  public boolean equals(@Nullable Object object) {
     return super.equals(object);
   }
 
+  @GwtIncompatible @J2ktIncompatible
   private static final long serialVersionUID = 7431625294878419160L;
 }

@@ -19,13 +19,16 @@ package com.google.common.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.errorprone.annotations.concurrent.GuardedBy;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Deque;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A {@code TearDownStack} contains a stack of {@link TearDown} instances.
@@ -36,12 +39,14 @@ import java.util.logging.Logger;
  * @since 10.0
  */
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
+@NullMarked
 public class TearDownStack implements TearDownAccepter {
   private static final Logger logger = Logger.getLogger(TearDownStack.class.getName());
 
-  @GuardedBy("stack")
-  final LinkedList<TearDown> stack = new LinkedList<>();
+  @VisibleForTesting final Object lock = new Object();
+
+  @GuardedBy("lock")
+  final Deque<TearDown> stack = new ArrayDeque<>();
 
   private final boolean suppressThrows;
 
@@ -55,7 +60,7 @@ public class TearDownStack implements TearDownAccepter {
 
   @Override
   public final void addTearDown(TearDown tearDown) {
-    synchronized (stack) {
+    synchronized (lock) {
       stack.addFirst(checkNotNull(tearDown));
     }
   }
@@ -64,7 +69,7 @@ public class TearDownStack implements TearDownAccepter {
   public final void runTearDown() {
     List<Throwable> exceptions = new ArrayList<>();
     List<TearDown> stackCopy;
-    synchronized (stack) {
+    synchronized (lock) {
       stackCopy = Lists.newArrayList(stack);
       stack.clear();
     }

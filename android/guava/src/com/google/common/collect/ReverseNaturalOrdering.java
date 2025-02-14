@@ -19,17 +19,18 @@ package com.google.common.collect;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import java.io.Serializable;
 import java.util.Iterator;
 
 /** An ordering that uses the reverse of the natural order of the values. */
 @GwtCompatible(serializable = true)
-@SuppressWarnings({"unchecked", "rawtypes"}) // TODO(kevinb): the right way to explain this??
-@ElementTypesAreNonnullByDefault
 final class ReverseNaturalOrdering extends Ordering<Comparable<?>> implements Serializable {
   static final ReverseNaturalOrdering INSTANCE = new ReverseNaturalOrdering();
 
   @Override
+  @SuppressWarnings("unchecked") // TODO(kevinb): the right way to explain this??
   public int compare(Comparable<?> left, Comparable<?> right) {
     checkNotNull(left); // right null is caught later
     if (left == right) {
@@ -98,5 +99,5 @@ final class ReverseNaturalOrdering extends Ordering<Comparable<?>> implements Se
 
   private ReverseNaturalOrdering() {}
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

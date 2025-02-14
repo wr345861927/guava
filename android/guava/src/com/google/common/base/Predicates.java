@@ -25,8 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Static utility methods pertaining to {@code Predicate} instances.
@@ -40,7 +39,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @since 2.0
  */
 @GwtCompatible(emulated = true)
-@ElementTypesAreNonnullByDefault
 public final class Predicates {
   private Predicates() {}
 
@@ -212,6 +210,7 @@ public final class Predicates {
    *
    * @param target the collection that may contain the function input
    */
+  @SuppressWarnings("NoHardKeywords") // We're stuck with the name for compatibility reasons.
   public static <T extends @Nullable Object> Predicate<T> in(Collection<? extends T> target) {
     return new InPredicate<>(target);
   }
@@ -235,7 +234,6 @@ public final class Predicates {
    * @throws IllegalArgumentException if the pattern is invalid
    * @since 3.0
    */
-  @J2ktIncompatible
   @GwtIncompatible // Only used by other GWT-incompatible code.
   public static Predicate<CharSequence> containsPattern(String pattern) {
     return new ContainsPatternFromStringPredicate(pattern);
@@ -248,7 +246,6 @@ public final class Predicates {
    *
    * @since 3.0
    */
-  @J2ktIncompatible
   @GwtIncompatible(value = "java.util.regex.Pattern")
   public static Predicate<CharSequence> contains(Pattern pattern) {
     return new ContainsPatternPredicate(new JdkPattern(pattern));
@@ -258,10 +255,12 @@ public final class Predicates {
 
   // Package private for GWT serialization.
   enum ObjectPredicate implements Predicate<@Nullable Object> {
-    /** @see Predicates#alwaysTrue() */
+    /**
+     * @see Predicates#alwaysTrue()
+     */
     ALWAYS_TRUE {
       @Override
-      public boolean apply(@CheckForNull Object o) {
+      public boolean apply(@Nullable Object o) {
         return true;
       }
 
@@ -270,10 +269,12 @@ public final class Predicates {
         return "Predicates.alwaysTrue()";
       }
     },
-    /** @see Predicates#alwaysFalse() */
+    /**
+     * @see Predicates#alwaysFalse()
+     */
     ALWAYS_FALSE {
       @Override
-      public boolean apply(@CheckForNull Object o) {
+      public boolean apply(@Nullable Object o) {
         return false;
       }
 
@@ -282,10 +283,12 @@ public final class Predicates {
         return "Predicates.alwaysFalse()";
       }
     },
-    /** @see Predicates#isNull() */
+    /**
+     * @see Predicates#isNull()
+     */
     IS_NULL {
       @Override
-      public boolean apply(@CheckForNull Object o) {
+      public boolean apply(@Nullable Object o) {
         return o == null;
       }
 
@@ -294,10 +297,12 @@ public final class Predicates {
         return "Predicates.isNull()";
       }
     },
-    /** @see Predicates#notNull() */
+    /**
+     * @see Predicates#notNull()
+     */
     NOT_NULL {
       @Override
-      public boolean apply(@CheckForNull Object o) {
+      public boolean apply(@Nullable Object o) {
         return o != null;
       }
 
@@ -313,7 +318,9 @@ public final class Predicates {
     }
   }
 
-  /** @see Predicates#not(Predicate) */
+  /**
+   * @see Predicates#not(Predicate)
+   */
   private static class NotPredicate<T extends @Nullable Object>
       implements Predicate<T>, Serializable {
     final Predicate<T> predicate;
@@ -333,7 +340,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof NotPredicate) {
         NotPredicate<?> that = (NotPredicate<?>) obj;
         return predicate.equals(that.predicate);
@@ -346,10 +353,12 @@ public final class Predicates {
       return "Predicates.not(" + predicate + ")";
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
-  /** @see Predicates#and(Iterable) */
+  /**
+   * @see Predicates#and(Iterable)
+   */
   private static class AndPredicate<T extends @Nullable Object>
       implements Predicate<T>, Serializable {
     private final List<? extends Predicate<? super T>> components;
@@ -376,7 +385,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof AndPredicate) {
         AndPredicate<?> that = (AndPredicate<?>) obj;
         return components.equals(that.components);
@@ -389,10 +398,12 @@ public final class Predicates {
       return toStringHelper("and", components);
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
-  /** @see Predicates#or(Iterable) */
+  /**
+   * @see Predicates#or(Iterable)
+   */
   private static class OrPredicate<T extends @Nullable Object>
       implements Predicate<T>, Serializable {
     private final List<? extends Predicate<? super T>> components;
@@ -419,7 +430,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof OrPredicate) {
         OrPredicate<?> that = (OrPredicate<?>) obj;
         return components.equals(that.components);
@@ -432,7 +443,7 @@ public final class Predicates {
       return toStringHelper("or", components);
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
   private static String toStringHelper(String methodName, Iterable<?> components) {
@@ -448,7 +459,9 @@ public final class Predicates {
     return builder.append(')').toString();
   }
 
-  /** @see Predicates#equalTo(Object) */
+  /**
+   * @see Predicates#equalTo(Object)
+   */
   private static class IsEqualToPredicate implements Predicate<@Nullable Object>, Serializable {
     private final Object target;
 
@@ -457,7 +470,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean apply(@CheckForNull Object o) {
+    public boolean apply(@Nullable Object o) {
       return target.equals(o);
     }
 
@@ -467,7 +480,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof IsEqualToPredicate) {
         IsEqualToPredicate that = (IsEqualToPredicate) obj;
         return target.equals(that.target);
@@ -480,7 +493,7 @@ public final class Predicates {
       return "Predicates.equalTo(" + target + ")";
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 
     @SuppressWarnings("unchecked") // safe contravariant cast
     <T extends @Nullable Object> Predicate<T> withNarrowedType() {
@@ -511,7 +524,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof InstanceOfPredicate) {
         InstanceOfPredicate<?> that = (InstanceOfPredicate<?>) obj;
         return clazz == that.clazz;
@@ -524,7 +537,7 @@ public final class Predicates {
       return "Predicates.instanceOf(" + clazz.getName() + ")";
     }
 
-    @J2ktIncompatible private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
   /**
@@ -550,7 +563,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof SubtypeOfPredicate) {
         SubtypeOfPredicate that = (SubtypeOfPredicate) obj;
         return clazz == that.clazz;
@@ -563,10 +576,12 @@ public final class Predicates {
       return "Predicates.subtypeOf(" + clazz.getName() + ")";
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
-  /** @see Predicates#in(Collection) */
+  /**
+   * @see Predicates#in(Collection)
+   */
   private static class InPredicate<T extends @Nullable Object>
       implements Predicate<T>, Serializable {
     private final Collection<?> target;
@@ -585,7 +600,13 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    /*
+     * We should probably not have implemented equals() at all, but given that we did, we can't
+     * provide a better implementation than the input Collection, at least without dramatic changes
+     * like copying it to a new Set—which might then test for element equality differently.
+     */
+    @SuppressWarnings("UndefinedEquals")
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof InPredicate) {
         InPredicate<?> that = (InPredicate<?>) obj;
         return target.equals(that.target);
@@ -603,10 +624,12 @@ public final class Predicates {
       return "Predicates.in(" + target + ")";
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
-  /** @see Predicates#compose(Predicate, Function) */
+  /**
+   * @see Predicates#compose(Predicate, Function)
+   */
   private static class CompositionPredicate<A extends @Nullable Object, B extends @Nullable Object>
       implements Predicate<A>, Serializable {
     final Predicate<B> p;
@@ -623,7 +646,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof CompositionPredicate) {
         CompositionPredicate<?, ?> that = (CompositionPredicate<?, ?>) obj;
         return f.equals(that.f) && p.equals(that.p);
@@ -642,13 +665,12 @@ public final class Predicates {
       return p + "(" + f + ")";
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
   /**
    * @see Predicates#contains(Pattern)
    */
-  @J2ktIncompatible
   @GwtIncompatible // Only used by other GWT-incompatible code.
   private static class ContainsPatternPredicate implements Predicate<CharSequence>, Serializable {
     final CommonPattern pattern;
@@ -671,7 +693,7 @@ public final class Predicates {
     }
 
     @Override
-    public boolean equals(@CheckForNull Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (obj instanceof ContainsPatternPredicate) {
         ContainsPatternPredicate that = (ContainsPatternPredicate) obj;
 
@@ -693,13 +715,12 @@ public final class Predicates {
       return "Predicates.contains(" + patternString + ")";
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
   /**
    * @see Predicates#containsPattern(String)
    */
-  @J2ktIncompatible
   @GwtIncompatible // Only used by other GWT-incompatible code.
   private static class ContainsPatternFromStringPredicate extends ContainsPatternPredicate {
 
@@ -712,7 +733,7 @@ public final class Predicates {
       return "Predicates.containsPattern(" + pattern.pattern() + ")";
     }
 
-    private static final long serialVersionUID = 0;
+    @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
   }
 
   private static <T extends @Nullable Object> List<Predicate<? super T>> asList(

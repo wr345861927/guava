@@ -17,7 +17,9 @@
 package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
-import javax.annotation.CheckForNull;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Wraps an exception that occurred during a computation.
@@ -34,12 +36,11 @@ import javax.annotation.CheckForNull;
  */
 @Deprecated
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 public class ComputationException extends RuntimeException {
   /** Creates a new instance with the given cause. */
-  public ComputationException(@CheckForNull Throwable cause) {
+  public ComputationException(@Nullable Throwable cause) {
     super(cause);
   }
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

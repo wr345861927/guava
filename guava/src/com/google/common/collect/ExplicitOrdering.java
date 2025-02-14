@@ -17,13 +17,14 @@
 package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import java.io.Serializable;
 import java.util.List;
-import javax.annotation.CheckForNull;
+import org.jspecify.annotations.Nullable;
 
 /** An ordering that compares objects according to a given order. */
 @GwtCompatible(serializable = true)
-@ElementTypesAreNonnullByDefault
 final class ExplicitOrdering<T> extends Ordering<T> implements Serializable {
   final ImmutableMap<T, Integer> rankMap;
 
@@ -49,7 +50,7 @@ final class ExplicitOrdering<T> extends Ordering<T> implements Serializable {
   }
 
   @Override
-  public boolean equals(@CheckForNull Object object) {
+  public boolean equals(@Nullable Object object) {
     if (object instanceof ExplicitOrdering) {
       ExplicitOrdering<?> that = (ExplicitOrdering<?>) object;
       return this.rankMap.equals(that.rankMap);
@@ -67,5 +68,5 @@ final class ExplicitOrdering<T> extends Ordering<T> implements Serializable {
     return "Ordering.explicit(" + rankMap.keySet() + ")";
   }
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

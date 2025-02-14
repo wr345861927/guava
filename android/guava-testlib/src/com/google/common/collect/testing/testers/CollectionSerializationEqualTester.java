@@ -31,9 +31,17 @@ import org.junit.Ignore;
  * @author Louis Wasserman
  */
 @GwtCompatible
-@Ignore // Affects only Android test runner, which respects JUnit 4 annotations on JUnit 3 tests.
+@Ignore("test runners must not instantiate and run this directly, only via suites we build")
+// @Ignore affects the Android test runner, which respects JUnit 4 annotations on JUnit 3 tests.
+@SuppressWarnings("JUnit4ClassUsedInJUnit3")
 public class CollectionSerializationEqualTester<E> extends AbstractCollectionTester<E> {
   @CollectionFeature.Require(SERIALIZABLE)
+  /*
+   * As the class docs say, this test only makes sense for collections that define equals().
+   * Accordingly, our testing framework adds it only when testing an implementation of List, Set, or
+   * Multiset.
+   */
+  @SuppressWarnings("UndefinedEquals")
   public void testReserialize() {
     assertEquals(SerializableTester.reserialize(actualContents()), actualContents());
   }

@@ -13,15 +13,15 @@
  */
 
 /**
- * <a href="https://guava.dev/EventBus">Discouraged</a> in favor of dependency injection and
- * concurrency frameworks, EventBus allows publish-subscribe-style communication.
+ * {@linkplain EventBus Discouraged} in favor of dependency injection and concurrency frameworks,
+ * EventBus allows publish-subscribe-style communication.
  *
  * <p>See the Guava User Guide article on <a
  * href="https://github.com/google/guava/wiki/EventBusExplained">{@code EventBus}</a>.
  */
 @CheckReturnValue
-@ParametersAreNonnullByDefault
+@NullMarked
 package com.google.common.eventbus;
 
 import com.google.errorprone.annotations.CheckReturnValue;
-import javax.annotation.ParametersAreNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

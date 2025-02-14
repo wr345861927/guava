@@ -25,7 +25,7 @@ import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsPackage;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Minimal GWT emulation of {@code com.google.common.collect.Platform}.
@@ -63,6 +63,14 @@ final class Platform {
    */
   static <K, V> Map<K, V> preservesInsertionOrderOnPutsMap() {
     return Maps.newLinkedHashMap();
+  }
+
+  /**
+   * Returns the platform preferred map implementation that preserves insertion order when used only
+   * for insertions, with a hint for how many entries to expect.
+   */
+  static <K, V> Map<K, V> preservesInsertionOrderOnPutsMapWithExpectedSize(int expectedSize) {
+    return Maps.newLinkedHashMapWithExpectedSize(expectedSize);
   }
 
   /**

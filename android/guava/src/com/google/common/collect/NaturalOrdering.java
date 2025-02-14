@@ -19,23 +19,23 @@ package com.google.common.collect;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import com.google.errorprone.annotations.concurrent.LazyInit;
 import java.io.Serializable;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /** An ordering that uses the natural order of the values. */
 @GwtCompatible(serializable = true)
-@SuppressWarnings({"unchecked", "rawtypes"}) // TODO(kevinb): the right way to explain this??
-@ElementTypesAreNonnullByDefault
 final class NaturalOrdering extends Ordering<Comparable<?>> implements Serializable {
   static final NaturalOrdering INSTANCE = new NaturalOrdering();
 
   // TODO: b/287198172 - Consider eagerly initializing these (but think about serialization).
-  @LazyInit @CheckForNull private transient Ordering<@Nullable Comparable<?>> nullsFirst;
-  @LazyInit @CheckForNull private transient Ordering<@Nullable Comparable<?>> nullsLast;
+  @LazyInit private transient @Nullable Ordering<@Nullable Comparable<?>> nullsFirst;
+  @LazyInit private transient @Nullable Ordering<@Nullable Comparable<?>> nullsLast;
 
   @Override
+  @SuppressWarnings("unchecked") // TODO(kevinb): the right way to explain this??
   public int compare(Comparable<?> left, Comparable<?> right) {
     checkNotNull(left); // for GWT
     checkNotNull(right);
@@ -43,6 +43,7 @@ final class NaturalOrdering extends Ordering<Comparable<?>> implements Serializa
   }
 
   @Override
+  @SuppressWarnings("unchecked") // TODO(kevinb): the right way to explain this??
   public <S extends Comparable<?>> Ordering<@Nullable S> nullsFirst() {
     Ordering<@Nullable Comparable<?>> result = nullsFirst;
     if (result == null) {
@@ -52,6 +53,7 @@ final class NaturalOrdering extends Ordering<Comparable<?>> implements Serializa
   }
 
   @Override
+  @SuppressWarnings("unchecked") // TODO(kevinb): the right way to explain this??
   public <S extends Comparable<?>> Ordering<@Nullable S> nullsLast() {
     Ordering<@Nullable Comparable<?>> result = nullsLast;
     if (result == null) {
@@ -61,6 +63,7 @@ final class NaturalOrdering extends Ordering<Comparable<?>> implements Serializa
   }
 
   @Override
+  @SuppressWarnings("unchecked") // TODO(kevinb): the right way to explain this??
   public <S extends Comparable<?>> Ordering<S> reverse() {
     return (Ordering<S>) ReverseNaturalOrdering.INSTANCE;
   }
@@ -77,5 +80,5 @@ final class NaturalOrdering extends Ordering<Comparable<?>> implements Serializa
 
   private NaturalOrdering() {}
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

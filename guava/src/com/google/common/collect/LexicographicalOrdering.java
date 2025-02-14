@@ -17,15 +17,15 @@
 package com.google.common.collect;
 
 import com.google.common.annotations.GwtCompatible;
+import com.google.common.annotations.GwtIncompatible;
+import com.google.common.annotations.J2ktIncompatible;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
-import javax.annotation.CheckForNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /** An ordering which sorts iterables by comparing corresponding elements pairwise. */
 @GwtCompatible(serializable = true)
-@ElementTypesAreNonnullByDefault
 final class LexicographicalOrdering<T extends @Nullable Object> extends Ordering<Iterable<T>>
     implements Serializable {
   final Comparator<? super T> elementOrder;
@@ -54,7 +54,7 @@ final class LexicographicalOrdering<T extends @Nullable Object> extends Ordering
   }
 
   @Override
-  public boolean equals(@CheckForNull Object object) {
+  public boolean equals(@Nullable Object object) {
     if (object == this) {
       return true;
     }
@@ -75,5 +75,5 @@ final class LexicographicalOrdering<T extends @Nullable Object> extends Ordering
     return elementOrder + ".lexicographical()";
   }
 
-  private static final long serialVersionUID = 0;
+  @GwtIncompatible @J2ktIncompatible private static final long serialVersionUID = 0;
 }

@@ -38,7 +38,6 @@ import com.google.common.escape.Escapers;
  * @since 15.0
  */
 @GwtCompatible
-@ElementTypesAreNonnullByDefault
 public class XmlEscapers {
   private XmlEscapers() {}
 
@@ -94,6 +93,7 @@ public class XmlEscapers {
    * <p>This escaper does not treat surrogate pairs specially and does not perform Unicode
    * validation on its input.
    */
+  @SuppressWarnings("EscapedEntity") // We do mean for the user to see &#x9;" etc.
   public static Escaper xmlAttributeEscaper() {
     return XML_ATTRIBUTE_ESCAPER;
   }

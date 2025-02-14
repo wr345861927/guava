@@ -17,15 +17,22 @@ package com.google.common.primitives;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndexes;
+import static java.security.AccessController.doPrivileged;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.annotations.J2ktIncompatible;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.j2objc.annotations.J2ObjCIncompatible;
+import java.lang.reflect.Field;
 import java.nio.ByteOrder;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 import sun.misc.Unsafe;
 
 /**
@@ -45,7 +52,6 @@ import sun.misc.Unsafe;
  */
 @J2ktIncompatible
 @GwtIncompatible
-@ElementTypesAreNonnullByDefault
 public final class UnsignedBytes {
   private UnsignedBytes() {}
 
@@ -69,7 +75,7 @@ public final class UnsignedBytes {
    * Returns the value of the given byte as an integer, when treated as unsigned. That is, returns
    * {@code value + 256} if {@code value} is negative; {@code value} itself otherwise.
    *
-   * <p><b>Java 8 users:</b> use {@link Byte#toUnsignedInt(byte)} instead.
+   * <p><b>Java 8+ users:</b> use {@link Byte#toUnsignedInt(byte)} instead.
    *
    * @since 6.0
    */
@@ -264,6 +270,9 @@ public final class UnsignedBytes {
    * support only identity equality), but it is consistent with {@link
    * java.util.Arrays#equals(byte[], byte[])}.
    *
+   * <p><b>Java 9+ users:</b> Use {@link Arrays#compareUnsigned(byte[], byte[])
+   * Arrays::compareUnsigned}.
+   *
    * @since 2.0
    */
   public static Comparator<byte[]> lexicographicalComparator() {
@@ -289,6 +298,7 @@ public final class UnsignedBytes {
 
     static final Comparator<byte[]> BEST_COMPARATOR = getBestComparator();
 
+    @SuppressWarnings("SunApi") // b/345822163
     @VisibleForTesting
     enum UnsafeComparator implements Comparator<byte[]> {
       INSTANCE;
@@ -319,7 +329,7 @@ public final class UnsignedBytes {
       static {
         // fall back to the safer pure java implementation unless we're in
         // a 64-bit JVM with an 8-byte aligned field offset.
-        if (!("64".equals(System.getProperty("sun.arch.data.model"))
+        if (!(Objects.equals(System.getProperty("sun.arch.data.model"), "64")
             && (BYTE_ARRAY_BASE_OFFSET % 8) == 0
             // sanity check - this should never fail
             && theUnsafe.arrayIndexScale(byte[].class) == 1)) {
@@ -333,34 +343,34 @@ public final class UnsignedBytes {
        *
        * @return a sun.misc.Unsafe
        */
-      private static sun.misc.Unsafe getUnsafe() {
+      private static Unsafe getUnsafe() {
         try {
-          return sun.misc.Unsafe.getUnsafe();
+          return Unsafe.getUnsafe();
         } catch (SecurityException e) {
           // that's okay; try reflection instead
         }
         try {
-          return java.security.AccessController.doPrivileged(
-              new java.security.PrivilegedExceptionAction<sun.misc.Unsafe>() {
-                @Override
-                public sun.misc.Unsafe run() throws Exception {
-                  Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
-                  for (java.lang.reflect.Field f : k.getDeclaredFields()) {
-                    f.setAccessible(true);
-                    Object x = f.get(null);
-                    if (k.isInstance(x)) {
-                      return k.cast(x);
+          return doPrivileged(
+              (PrivilegedExceptionAction<Unsafe>)
+                  () -> {
+                    Class<Unsafe> k = Unsafe.class;
+                    for (Field f : k.getDeclaredFields()) {
+                      f.setAccessible(true);
+                      Object x = f.get(null);
+                      if (k.isInstance(x)) {
+                        return k.cast(x);
+                      }
                     }
-                  }
-                  throw new NoSuchFieldError("the Unsafe");
-                }
-              });
-        } catch (java.security.PrivilegedActionException e) {
+                    throw new NoSuchFieldError("the Unsafe");
+                  });
+        } catch (PrivilegedActionException e) {
           throw new RuntimeException("Could not initialize intrinsics", e.getCause());
         }
       }
 
       @Override
+      // Long.compareUnsigned is available under Android, which is what we really care about.
+      @SuppressWarnings("Java7ApiChecker")
       public int compare(byte[] left, byte[] right) {
         int stride = 8;
         int minLength = Math.min(left.length, right.length);
@@ -376,7 +386,7 @@ public final class UnsignedBytes {
           long rw = theUnsafe.getLong(right, BYTE_ARRAY_BASE_OFFSET + (long) i);
           if (lw != rw) {
             if (BIG_ENDIAN) {
-              return UnsignedLongs.compare(lw, rw);
+              return Long.compareUnsigned(lw, rw);
             }
 
             /*
@@ -433,6 +443,12 @@ public final class UnsignedBytes {
      * to do so.
      */
     static Comparator<byte[]> getBestComparator() {
+      Comparator<byte[]> arraysCompareUnsignedComparator =
+          ArraysCompareUnsignedComparatorMaker.INSTANCE.tryMakeArraysCompareUnsignedComparator();
+      if (arraysCompareUnsignedComparator != null) {
+        return arraysCompareUnsignedComparator;
+      }
+
       try {
         Class<?> theClass = Class.forName(UNSAFE_COMPARATOR_NAME);
 
@@ -446,6 +462,44 @@ public final class UnsignedBytes {
       } catch (Throwable t) { // ensure we really catch *everything*
         return lexicographicalComparatorJavaImpl();
       }
+    }
+  }
+
+  private enum ArraysCompareUnsignedComparatorMaker {
+    INSTANCE {
+      /** Implementation used by non-J2ObjC environments. */
+      // We use Arrays.compareUnsigned only after confirming that it's available at runtime.
+      @SuppressWarnings("Java8ApiChecker")
+      @IgnoreJRERequirement
+      @Override
+      @J2ObjCIncompatible
+      @Nullable Comparator<byte[]> tryMakeArraysCompareUnsignedComparator() {
+        try {
+          // Compare AbstractFuture.VarHandleAtomicHelperMaker.
+          Arrays.class.getMethod("compareUnsigned", byte[].class, byte[].class);
+        } catch (NoSuchMethodException beforeJava9) {
+          return null;
+        }
+        return ArraysCompareUnsignedComparator.INSTANCE;
+      }
+    };
+
+    /** Implementation used by J2ObjC environments, overridden for other environments. */
+    @Nullable Comparator<byte[]> tryMakeArraysCompareUnsignedComparator() {
+      return null;
+    }
+  }
+
+  @J2ObjCIncompatible
+  enum ArraysCompareUnsignedComparator implements Comparator<byte[]> {
+    INSTANCE;
+
+    @Override
+    // We use the class only after confirming that Arrays.compareUnsigned is available at runtime.
+    @SuppressWarnings("Java8ApiChecker")
+    @IgnoreJRERequirement
+    public int compare(byte[] left, byte[] right) {
+      return Arrays.compareUnsigned(left, right);
     }
   }
 
